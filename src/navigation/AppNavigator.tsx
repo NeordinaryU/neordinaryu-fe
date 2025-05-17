@@ -6,24 +6,27 @@ import OnboardingPage from '../pages/onboarding';
 import BottomTabNavigator from './BottomTabNavigator';
 import FundingDetailPage from '../pages/FundingDetail';
 import {RootStackParamList, SCREENS} from './types';
+import {ToastProvider} from '../contexts/ToastContext';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const AppNavigator = () => {
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName={SCREENS.ONBOARDING} // 온보딩을 첫 화면으로
-        screenOptions={{
-          headerShown: false,
-        }}>
-        <Stack.Screen name={SCREENS.ONBOARDING} component={OnboardingPage} />
-        {/* SCREENS.MAIN 경로에 BottomTabNavigator를 연결합니다. */}
-        <Stack.Screen name={SCREENS.MAIN} component={BottomTabNavigator} />
-        <Stack.Screen name={SCREENS.FUNDING_DETAIL} component={FundingDetailPage} />
-        {/* 추후 다른 화면들 추가*/}
-      </Stack.Navigator>
-    </NavigationContainer>
+    <ToastProvider>
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName={SCREENS.ONBOARDING} // 온보딩을 첫 화면으로
+          screenOptions={{
+            headerShown: false,
+          }}>
+          <Stack.Screen name={SCREENS.ONBOARDING} component={OnboardingPage} />
+          {/* SCREENS.MAIN 경로에 BottomTabNavigator를 연결합니다. */}
+          <Stack.Screen name={SCREENS.MAIN} component={BottomTabNavigator} />
+          <Stack.Screen name={SCREENS.FUNDING_DETAIL} component={FundingDetailPage} />
+          {/* 추후 다른 화면들 추가*/}
+        </Stack.Navigator>
+      </NavigationContainer>
+    </ToastProvider>
   );
 };
 
