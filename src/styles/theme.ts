@@ -14,6 +14,7 @@ const Colors = {
   mainRed: '#FC5F46',
   subGreen: '#BEE60A',
   red100: '#FFE7E4E7',
+  green100: '#F0F9CB',
 };
 
 export default Colors;
