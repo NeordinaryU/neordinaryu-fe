@@ -1,38 +1,64 @@
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RouteProp} from '@react-navigation/native';
+import {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
 
 // 앱에서 사용할 모든 화면 이름을 union 타입으로 정의
-export type AppScreens = 'Onboarding' | 'Home' | 'Main' | 'Profile' | 'Settings';
+export type AppScreens = 'Onboarding' | 'Main' | 'Magazine' | 'Home' | 'FundingUpload' | 'MyPage';
 
 // 스크린 이름 상수
 export const SCREENS = {
   ONBOARDING: 'Onboarding' as const,
-  HOME: 'Home' as const,
   MAIN: 'Main' as const,
-  PROFILE: 'Profile' as const,
-  SETTINGS: 'Settings' as const,
+  MAGAZINE: 'Magazine' as const,
+  HOME: 'Home' as const,
+  FUNDING_UPLOAD: 'FundingUpload' as const,
+  MY_PAGE: 'MyPage' as const,
 };
 
-// 네비게이션에 사용될 파라미터 타입 정의
+// 네이티브 스택 네비게이션에 사용될 파라미터 타입 정의
 export type RootStackParamList = {
-  Onboarding: undefined;
-  Home: undefined;
-  Main: undefined;
-  Profile: {userId: string};
-  Settings: undefined;
+  [SCREENS.ONBOARDING]: undefined;
+  [SCREENS.MAIN]: undefined;
 };
 
-// 화면 네비게이션 프롭 타입
-export type AppNavigationProp<T extends AppScreens> = NativeStackNavigationProp<
+// 하단 탭 네비게이션에 사용될 파라미터 타입 정의
+export type MainBottomTabParamList = {
+  [SCREENS.MAGAZINE]: undefined;
+  [SCREENS.HOME]: undefined;
+  [SCREENS.FUNDING_UPLOAD]: undefined;
+  [SCREENS.MY_PAGE]: undefined;
+};
+
+// 화면 네비게이션 프롭 타입 (RootStack용)
+export type RootStackNavigationProp<T extends keyof RootStackParamList> = NativeStackNavigationProp<
   RootStackParamList,
   T
 >;
 
-// 화면 라우트 프롭 타입
-export type AppRouteProp<T extends AppScreens> = RouteProp<RootStackParamList, T>;
+// 화면 라우트 프롭 타입 (RootStack용)
+export type RootStackRouteProp<T extends keyof RootStackParamList> = RouteProp<
+  RootStackParamList,
+  T
+>;
 
-// 화면 프롭 타입
-export interface AppScreenProps<T extends AppScreens> {
-  navigation: AppNavigationProp<T>;
-  route: AppRouteProp<T>;
+// 화면 프롭 타입 (RootStack용)
+export interface RootStackScreenProps<T extends keyof RootStackParamList> {
+  navigation: RootStackNavigationProp<T>;
+  route: RootStackRouteProp<T>;
+}
+
+// 하단 탭 화면 네비게이션 프롭 타입
+export type MainBottomTabNavigationProp<T extends keyof MainBottomTabParamList> =
+  BottomTabNavigationProp<MainBottomTabParamList, T>;
+
+// 하단 탭 화면 라우트 프롭 타입
+export type MainBottomTabRouteProp<T extends keyof MainBottomTabParamList> = RouteProp<
+  MainBottomTabParamList,
+  T
+>;
+
+// 하단 탭 화면 프롭 타입
+export interface MainBottomTabScreenProps<T extends keyof MainBottomTabParamList> {
+  navigation: MainBottomTabNavigationProp<T>;
+  route: MainBottomTabRouteProp<T>;
 }
