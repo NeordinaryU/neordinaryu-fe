@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View, Text, StyleSheet, ScrollView} from 'react-native';
+import {View, Text, StyleSheet, ScrollView, Image} from 'react-native';
 import {
   InactiveButton,
   ActiveButton,
@@ -20,54 +20,67 @@ const OnboardingPage = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.container}>
-        <Text style={styles.welcomeText}>써닝에 오신 것을 환영해요!</Text>
-        <Text style={styles.titleText}>투자하고 싶은 태양광 지역을{'\n'}선택해주세요.</Text>
+    <View style={styles.mainContainer}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.container}>
+          <Text style={styles.welcomeText}>써닝에 오신 것을 환영해요!</Text>
+          <Text style={styles.titleText}>투자하고 싶은 태양광 지역을{'\n'}선택해주세요.</Text>
 
-        <View style={styles.regionsContainer}>
-          {regions.map(region =>
-            region === selectedRegion ? (
-              <ActiveButton
-                key={region}
-                title={region}
-                onPress={() => handleRegionSelect(region)}
+          <View style={styles.regionsContainer}>
+            {regions.map(region =>
+              region === selectedRegion ? (
+                <ActiveButton
+                  key={region}
+                  title={region}
+                  onPress={() => handleRegionSelect(region)}
+                />
+              ) : (
+                <InactiveButton
+                  key={region}
+                  title={region}
+                  onPress={() => handleRegionSelect(region)}
+                />
+              ),
+            )}
+          </View>
+
+          <View style={styles.bottomButtonContainer}>
+            {selectedRegion ? (
+              <CompleteButton
+                title="완료"
+                style={styles.completeButton}
+                onPress={() => console.log('선택 완료:', selectedRegion)}
               />
             ) : (
-              <InactiveButton
-                key={region}
-                title={region}
-                onPress={() => handleRegionSelect(region)}
-              />
-            ),
-          )}
+              <SecondaryButton title="완료" style={styles.completeButton} />
+            )}
+          </View>
         </View>
+      </ScrollView>
 
-        <View style={styles.bottomButtonContainer}>
-          {selectedRegion ? (
-            <CompleteButton
-              title="완료"
-              style={styles.completeButton}
-              onPress={() => console.log('선택 완료:', selectedRegion)}
-            />
-          ) : (
-            <SecondaryButton title="완료" style={styles.completeButton} />
-          )}
-        </View>
+      <View style={styles.imageContainer}>
+        <Image
+          source={require('../../assets/img_onboarding_1.png')}
+          style={styles.onboardingImage}
+          resizeMode="contain"
+        />
       </View>
-    </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+    backgroundColor: Colors.grayLightWhite,
+  },
   scrollContainer: {
     flexGrow: 1,
+    paddingHorizontal: scale(20),
+    paddingTop: vs(60),
   },
   container: {
     flex: 1,
-    padding: scale(20),
-    paddingTop: vs(60),
-    backgroundColor: Colors.grayLightWhite,
   },
   welcomeText: {
     ...Typography.body1_m_16,
@@ -97,6 +110,18 @@ const styles = StyleSheet.create({
   },
   completeButton: {
     width: '100%',
+  },
+  imageContainer: {
+    width: '100%',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  onboardingImage: {
+    width: scale(375),
+    height: vs(120),
   },
 });
 
