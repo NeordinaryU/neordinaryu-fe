@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import IcDeadlineGray from '../../assets/ic_deadline_gray_22.svg';
 import IcCalendarGray from '../../assets/ic_calendar_22.svg';
 import IcMoneyGray from '../../assets/ic_money_gray_22.svg';
 import IcSpotGray from '../../assets/ic_spot_gray_22.svg';
+import {useToast} from '../../contexts/ToastContext';
 
 // type FundingDetailRouteProp = RouteProp<RootStackParamList, 'FundingDetail'>;
 type FundingDetailProps = RootStackScreenProps<'FundingDetail'>;
@@ -40,8 +41,25 @@ const FundingDetailPage: React.FC<FundingDetailProps> = ({route, navigation}) =>
   const {fundingId: _fundingId} = route.params;
   // TODO: _fundingId를 사용하여 실제 펀딩 데이터
   const fundingData = placeholderFundingData;
+  const {showToast} = useToast();
+
+  // Placeholder state to simulate if user has already participated
+  const [hasParticipated, setHasParticipated] = useState(false);
 
   const progressPercent = Math.floor((fundingData.currentAmount / fundingData.targetAmount) * 100);
+
+  const handleJoinFunding = () => {
+    if (hasParticipated) {
+      showToast('이미 참여한 펀딩입니다.', 'error');
+    } else {
+      showToast('펀딩 참여가 완료되었어요.', 'success');
+      // In a real app, you would also update the participation status here, e.g.:
+      // setHasParticipated(true);
+      // await participateInFundingApi(fundingData.id);
+    }
+    // For demo, toggle participation state
+    setHasParticipated(!hasParticipated);
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -98,7 +116,7 @@ const FundingDetailPage: React.FC<FundingDetailProps> = ({route, navigation}) =>
           </View>
         </View>
 
-        <TouchableOpacity style={styles.joinButton}>
+        <TouchableOpacity style={styles.joinButton} onPress={handleJoinFunding}>
           <Text style={styles.joinButtonText}>이 펀딩과 함께하기</Text>
         </TouchableOpacity>
       </ScrollView>
