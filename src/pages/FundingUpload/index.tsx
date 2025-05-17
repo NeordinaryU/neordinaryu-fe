@@ -161,7 +161,7 @@ const FundingUploadPage = () => {
           if (isDatePickerVisible) setDatePickerVisibility(false);
         }}
         keyboardShouldPersistTaps="handled">
-        <HomeHeader onAlertPress={() => console.log('알림 버튼 클릭됨')} />
+        <HomeHeader />
 
         <FundingTextInput
           title="펀딩 제목"

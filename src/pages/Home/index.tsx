@@ -52,10 +52,6 @@ const HomePage = () => {
   const [fundingData, setFundingData] = useState(DUMMY_FUNDING_DATA);
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const handleAlertPress = () => {
-    console.log('Alert pressed');
-  };
-
   const handleRegionChange = (region: string) => {
     setSelectedRegion(region);
   };
@@ -83,7 +79,7 @@ const HomePage = () => {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.scrollView}>
         <View style={styles.container}>
-          <HomeHeader onAlertPress={handleAlertPress} />
+          <HomeHeader />
           <RegionSelector selectedRegion={selectedRegion} onRegionChange={handleRegionChange} />
           <View style={styles.bannerContainer} />
           <FundingListHeader selectedFilter={activeFilter} onFilterChange={handleFilterChange} />

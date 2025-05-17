@@ -60,10 +60,6 @@ const MyPage = () => {
   const [activeFilterTab, setActiveFilterTab] = useState<MyPageFilterType>('participated');
   const navigation = useNavigation<MainBottomTabNavigationProp<typeof SCREENS.MY_PAGE>>();
 
-  const handleAlertPress = () => {
-    console.log('MyPage에서 알림 아이콘 클릭됨');
-  };
-
   const handleListItemPress = (id: string, type: MyPageFilterType) => {
     console.log(`MyPage ${type} 펀딩 아이템 클릭됨:`, id);
     // FundingDetailPage가 RootStack에 있는 경우, 타입 캐스팅 또는 다른 네비게이션 타입 사용 필요
@@ -93,7 +89,7 @@ const MyPage = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <HomeHeader onAlertPress={handleAlertPress} />
+      <HomeHeader />
       <View style={styles.filterTabContainer}>
         <TouchableOpacity
           style={getFilterTabStyle('participated')}
