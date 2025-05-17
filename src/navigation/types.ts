@@ -3,7 +3,14 @@ import {RouteProp} from '@react-navigation/native';
 import {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
 
 // 앱에서 사용할 모든 화면 이름을 union 타입으로 정의
-export type AppScreens = 'Onboarding' | 'Main' | 'Magazine' | 'Home' | 'FundingUpload' | 'MyPage';
+export type AppScreens =
+  | 'Onboarding'
+  | 'Main'
+  | 'Magazine'
+  | 'Home'
+  | 'FundingUpload'
+  | 'MyPage'
+  | 'FundingDetail';
 
 // 스크린 이름 상수
 export const SCREENS = {
@@ -13,12 +20,14 @@ export const SCREENS = {
   HOME: 'Home' as const,
   FUNDING_UPLOAD: 'FundingUpload' as const,
   MY_PAGE: 'MyPage' as const,
+  FUNDING_DETAIL: 'FundingDetail' as const,
 };
 
 // 네이티브 스택 네비게이션에 사용될 파라미터 타입 정의
 export type RootStackParamList = {
   [SCREENS.ONBOARDING]: undefined;
   [SCREENS.MAIN]: undefined;
+  [SCREENS.FUNDING_DETAIL]: {fundingId: string};
 };
 
 // 하단 탭 네비게이션에 사용될 파라미터 타입 정의
