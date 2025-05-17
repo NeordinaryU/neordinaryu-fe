@@ -1,5 +1,5 @@
-import React from 'react';
-import {View, Text, StyleSheet, Platform} from 'react-native';
+import React, {useEffect, useRef, useState} from 'react';
+import {Text, StyleSheet, Platform, Animated, Easing} from 'react-native';
 import Colors from '../../styles/theme';
 import Typography from '../../styles/typography';
 import {scale, vs} from '../../utils/scaling';
@@ -18,19 +18,71 @@ interface ToastMessageProps {
 }
 
 const TOAST_OFFSET_TOP = Platform.OS === 'ios' ? vs(60) : vs(20); // Adjust as needed for status bar/notch
+const TOAST_HEIGHT = vs(48);
+const ANIMATION_DURATION = 300;
 
 const ToastMessage: React.FC<ToastMessageProps> = ({message, type, isVisible}) => {
-  if (!isVisible) {
+  const [renderToast, setRenderToast] = useState(false);
+  const opacityAnim = useRef(new Animated.Value(0)).current;
+  const translateYAnim = useRef(new Animated.Value(-TOAST_HEIGHT)).current;
+
+  useEffect(() => {
+    if (isVisible) {
+      setRenderToast(true);
+      Animated.parallel([
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: ANIMATION_DURATION,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateYAnim, {
+          toValue: 0,
+          duration: ANIMATION_DURATION,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(opacityAnim, {
+          toValue: 0,
+          duration: ANIMATION_DURATION,
+          easing: Easing.in(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateYAnim, {
+          toValue: -TOAST_HEIGHT,
+          duration: ANIMATION_DURATION,
+          easing: Easing.in(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setRenderToast(false); // Remove from render tree after animation
+      });
+    }
+  }, [isVisible, opacityAnim, translateYAnim]);
+
+  if (!renderToast && !isVisible) {
+    // Ensure it's not rendered initially if not visible, and removed after fade out
     return null;
   }
 
   const IconComponent = type === 'success' ? IcCheckGreen : IcError;
 
   return (
-    <View style={[styles.toastContainer, styles.shadow]}>
+    <Animated.View
+      style={[
+        styles.toastContainer,
+        styles.shadow,
+        {
+          opacity: opacityAnim,
+          transform: [{translateY: translateYAnim}],
+        },
+      ]}>
       <IconComponent width={scale(22)} height={vs(22)} />
       <Text style={styles.toastMessageText}>{message}</Text>
-    </View>
+    </Animated.View>
   );
 };
 
@@ -40,7 +92,7 @@ const styles = StyleSheet.create({
     top: TOAST_OFFSET_TOP,
     left: scale(16),
     right: scale(16),
-    height: vs(48),
+    height: TOAST_HEIGHT,
     backgroundColor: Colors.grayLight900,
     flexDirection: 'row',
     alignItems: 'center',
