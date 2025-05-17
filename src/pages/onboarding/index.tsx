@@ -9,14 +9,26 @@ import {
 import {scale, vs} from '../../utils/scaling';
 import Colors from '../../styles/theme';
 import Typography from '../../styles/typography';
+import {useNavigation} from '@react-navigation/native';
+import {AppNavigationProp, SCREENS} from '../../navigation/types';
 
 const OnboardingPage = () => {
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+  const navigation = useNavigation<AppNavigationProp<'Onboarding'>>();
 
   const regions = ['서울', '인천/경기', '경상도', '충청도', '강원도', '전라도', '제주도'];
 
   const handleRegionSelect = (region: string) => {
     setSelectedRegion(region);
+  };
+
+  const handleComplete = () => {
+    if (selectedRegion) {
+      // 선택된 지역을 저장하는 로직이 필요하다면 여기에 추가
+      console.log('선택 완료:', selectedRegion);
+      // 홈 화면으로 이동
+      navigation.navigate(SCREENS.HOME);
+    }
   };
 
   return (
@@ -46,11 +58,7 @@ const OnboardingPage = () => {
 
           <View style={styles.bottomButtonContainer}>
             {selectedRegion ? (
-              <CompleteButton
-                title="완료"
-                style={styles.completeButton}
-                onPress={() => console.log('선택 완료:', selectedRegion)}
-              />
+              <CompleteButton title="완료" style={styles.completeButton} onPress={handleComplete} />
             ) : (
               <SecondaryButton title="완료" style={styles.completeButton} />
             )}

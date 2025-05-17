@@ -2,11 +2,12 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RouteProp} from '@react-navigation/native';
 
 // 앱에서 사용할 모든 화면 이름을 union 타입으로 정의
-export type AppScreens = 'Onboarding' | 'Main' | 'Profile' | 'Settings';
+export type AppScreens = 'Onboarding' | 'Home' | 'Main' | 'Profile' | 'Settings';
 
 // 스크린 이름 상수
 export const SCREENS = {
   ONBOARDING: 'Onboarding' as const,
+  HOME: 'Home' as const,
   MAIN: 'Main' as const,
   PROFILE: 'Profile' as const,
   SETTINGS: 'Settings' as const,
@@ -15,6 +16,7 @@ export const SCREENS = {
 // 네비게이션에 사용될 파라미터 타입 정의
 export type RootStackParamList = {
   Onboarding: undefined;
+  Home: undefined;
   Main: undefined;
   Profile: {userId: string};
   Settings: undefined;
