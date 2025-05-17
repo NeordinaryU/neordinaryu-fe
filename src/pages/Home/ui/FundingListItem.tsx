@@ -7,8 +7,8 @@ import Typography from '../../../styles/typography';
 interface FundingListItemProps {
   id: string;
   title: string;
-  author: string;
-  location: string;
+  userRegionLabel: string;
+  detailAddress: string;
   daysLeft: number;
   achievementRate: number;
   currentAmount: number;
@@ -18,8 +18,8 @@ interface FundingListItemProps {
 
 const FundingListItem: React.FC<FundingListItemProps> = ({
   title,
-  author,
-  location,
+  userRegionLabel,
+  detailAddress,
   daysLeft,
   achievementRate,
   currentAmount,
@@ -29,19 +29,35 @@ const FundingListItem: React.FC<FundingListItemProps> = ({
   // 금액 포맷팅 (천 단위 콤마)
   const formattedAmount = currentAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
+  // 사용자 지역 레이블과 상세 주소를 조합하여 표시
+  let displayLocationInfo = '';
+  if (userRegionLabel && detailAddress) {
+    displayLocationInfo = `${userRegionLabel} | ${detailAddress}`;
+  } else if (userRegionLabel) {
+    displayLocationInfo = userRegionLabel;
+  } else if (detailAddress) {
+    displayLocationInfo = detailAddress;
+  }
+
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <Image source={{uri: imageUrl}} style={styles.image} resizeMode="cover" />
 
       <View style={styles.infoContainer}>
-        <Text style={styles.daysLeft}>D-{daysLeft}</Text>
-        <Text style={styles.title} numberOfLines={2}>
-          {title}
-        </Text>
-        <Text style={styles.authorLocation}>
-          {author} | {location}
-        </Text>
+        {/* 상단 정보 그룹 */}
+        <View style={styles.topContentContainer}>
+          <Text style={styles.daysLeft}>D-{daysLeft}</Text>
+          <Text style={styles.title} numberOfLines={2}>
+            {title}
+          </Text>
+          {displayLocationInfo ? (
+            <Text style={styles.locationInfoText} numberOfLines={1}>
+              {displayLocationInfo}
+            </Text>
+          ) : null}
+        </View>
 
+        {/* 하단 금액 정보 그룹 */}
         <View style={styles.amountContainer}>
           <Text style={styles.achievementRate}>{achievementRate}% 달성</Text>
           <Text style={styles.currentAmount}>{formattedAmount}원</Text>
@@ -54,7 +70,6 @@ const FundingListItem: React.FC<FundingListItemProps> = ({
 const styles = StyleSheet.create({
   container: {
     width: scale(336),
-    height: vs(150),
     backgroundColor: 'white',
     borderRadius: 8,
     padding: scale(12),
@@ -74,6 +89,11 @@ const styles = StyleSheet.create({
   infoContainer: {
     flex: 1,
     marginLeft: scale(12),
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+  },
+  topContentContainer: {
+    // 상단 정보 그룹 스타일 (특별한 스타일 없어도 됨, 내부 요소 마진으로 간격 조절)
   },
   daysLeft: {
     ...Typography.body4_m_12,
@@ -82,21 +102,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(6),
     borderRadius: 4,
     alignSelf: 'flex-start',
+    marginBottom: vs(6),
   },
   title: {
     ...Typography.subtitle5_b_16,
     color: Colors.grayLight900,
-    marginTop: vs(4),
+    marginBottom: vs(6),
   },
-  authorLocation: {
+  locationInfoText: {
     ...Typography.body4_m_12,
     color: Colors.grayLight700,
-    marginTop: vs(4),
   },
   amountContainer: {
     flexDirection: 'column',
     alignItems: 'flex-start',
-    marginTop: vs(8),
   },
   achievementRate: {
     ...Typography.subtitle6_b_14,

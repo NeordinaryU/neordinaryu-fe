@@ -1,5 +1,13 @@
-import React, {useState} from 'react';
-import {View, StyleSheet, SafeAreaView, ScrollView, Text, TouchableOpacity} from 'react-native';
+import React, {useState, useEffect, useCallback} from 'react';
+import {
+  View,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import HomeHeader from '../Home/ui/HomeHeader'; // HomeHeader 재사용
 import Colors from '../../styles/theme';
 import ParticipatedFundingListItem from './ui/ParticipatedFundingListItem'; // 다음에 생성할 컴포넌트
@@ -8,84 +16,169 @@ import {vs, scale} from '../../utils/scaling';
 import Typography from '../../styles/typography';
 import {useNavigation} from '@react-navigation/native'; // 네비게이션용
 import {MainBottomTabNavigationProp, SCREENS} from '../../navigation/types';
+import {getParticipatedFundings, ParticipatedFundingItem} from '../../api/fundingApi'; // API 함수 및 타입 임포트
+import {getCurrentUserCreatedFundings, UserCreatedFundingItem} from '../../api/userApi'; // API 함수 및 타입 임포트
 
 export type MyPageFilterType = 'participated' | 'created';
 
-// 펀딩 아이템 인터페이스 정의
-interface MyFundingItem {
+// MyPage에서 사용할 통합된 펀딩 아이템 인터페이스
+interface MyFundingListItemType {
   id: string;
   imageUrl: string;
   achievementRate: number;
   daysLeft: number;
   title: string;
+  // location?: string; // 필요시 추가 (ParticipatedFundingListItem 프롭에 맞게)
 }
 
-// 내 참여 펀딩 더미 데이터
-const DUMMY_MY_FUNDINGS: MyFundingItem[] = [
-  // {
-  //   id: 'participated_fund1',
-  //   imageUrl: 'https://picsum.photos/seed/mypage1/64',
-  //   achievementRate: 85,
-  //   daysLeft: 10,
-  //   title: '[참여] 우리 동네 클린 에너지 프로젝트',
-  // },
-  // {
-  //   id: 'participated_fund2',
-  //   imageUrl: 'https://picsum.photos/seed/mypage2/64',
-  //   achievementRate: 100,
-  //   daysLeft: 0,
-  //   title: '[참여] 옥상 태양광 패널 설치 지원',
-  // },
-];
-
-// 내가 개설한 펀딩 더미 데이터
-const DUMMY_CREATED_FUNDINGS: MyFundingItem[] = [
-  // {
-  //   id: 'created_fund1',
-  //   imageUrl: 'https://picsum.photos/seed/created1/64',
-  //   achievementRate: 60,
-  //   daysLeft: 15,
-  //   title: '[개설] 학교 앞 스쿨존 안전 개선 펀딩',
-  // },
-  // {
-  //   id: 'created_fund2',
-  //   imageUrl: 'https://picsum.photos/seed/created2/64',
-  //   achievementRate: 90,
-  //   daysLeft: 5,
-  //   title: '[개설] 유기견 보호소 난방비 지원',
-  // },
-];
+// 더미 데이터 제거
+// const DUMMY_MY_FUNDINGS: MyFundingItem[] = [ ... ];
+// const DUMMY_CREATED_FUNDINGS: MyFundingItem[] = [ ... ];
 
 const MyPage = () => {
   const [activeFilterTab, setActiveFilterTab] = useState<MyPageFilterType>('participated');
+  const [fundingsData, setFundingsData] = useState<MyFundingListItemType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const navigation = useNavigation<MainBottomTabNavigationProp<typeof SCREENS.MY_PAGE>>();
+
+  const calculateDaysLeft = (deadlineDate: string): number => {
+    const deadline = new Date(deadlineDate);
+    const today = new Date();
+    deadline.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    const diffTime = Math.max(0, deadline.getTime() - today.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  const mapToMyFundingListItem = useCallback(
+    (item: ParticipatedFundingItem | UserCreatedFundingItem): MyFundingListItemType => {
+      const achievementRate =
+        item.goalMoney && item.goalMoney > 0
+          ? Math.min(100, Math.floor((item.fundedMoney / item.goalMoney) * 100))
+          : 0;
+
+      // location은 ParticipatedFundingListItem에서 필수가 아니므로 여기서 설정 안함
+      // 필요하다면 item.region과 API_REGION_TO_USER_LABEL_MAP을 사용해 추가
+
+      return {
+        id: item.fundingId.toString(),
+        imageUrl: item.photoUrl,
+        achievementRate: achievementRate,
+        daysLeft: calculateDaysLeft(item.deadlineDate),
+        title: item.title,
+      };
+    },
+    [],
+  );
+
+  useEffect(() => {
+    const fetchMyFundings = async () => {
+      setIsLoading(true);
+      setError(null);
+      setFundingsData([]);
+
+      try {
+        let response;
+        if (activeFilterTab === 'participated') {
+          console.log('Fetching participated fundings...');
+          response = await getParticipatedFundings();
+        } else {
+          console.log('Fetching created fundings...');
+          response = await getCurrentUserCreatedFundings();
+        }
+
+        if (response.statusCode === 200 && response.data) {
+          console.log(`Fetched ${response.data.length} items for ${activeFilterTab}`);
+          const mappedData = response.data.map(mapToMyFundingListItem);
+          setFundingsData(mappedData);
+        } else {
+          const errorMessage =
+            response.message ||
+            `${
+              activeFilterTab === 'participated' ? '참여한' : '개설한'
+            } 펀딩 목록을 불러오는데 실패했습니다.`;
+          setError(errorMessage);
+          console.error(
+            `Error fetching ${activeFilterTab} fundings:`,
+            errorMessage,
+            'Status:',
+            response.statusCode,
+          );
+        }
+      } catch (e: any) {
+        const errorMessage = e.message || '알 수 없는 오류가 발생했습니다.';
+        setError(errorMessage);
+        console.error(`Exception fetching ${activeFilterTab} fundings:`, errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMyFundings();
+  }, [activeFilterTab, mapToMyFundingListItem]);
 
   const handleListItemPress = (id: string, type: MyPageFilterType) => {
     console.log(`MyPage ${type} 펀딩 아이템 클릭됨:`, id);
-    // FundingDetailPage가 RootStack에 있는 경우, 타입 캐스팅 또는 다른 네비게이션 타입 사용 필요
-    // 예: (navigation.getParent() as any)?.navigate('FundingDetail', { fundingId: id });
-    // 또는 RootStackNavigationProp을 사용하여 네비게이터 간 이동 처리
+    // FundingDetailPage로 네비게이션 (RootStack에 정의되어 있다고 가정)
+    // navigation.navigate(SCREENS.FUNDING_DETAIL, { fundingId: id }); // RootStackParamList에 FUNDING_DETAIL이 있어야 함
+    // 임시로 RootStack 네비게이션은 주석 처리
+    try {
+      (navigation.getParent() as any)?.navigate(SCREENS.FUNDING_DETAIL, {fundingId: id});
+    } catch (navError) {
+      console.error('Failed to navigate to FUNDING_DETAIL:', navError);
+      // Fallback or alternative navigation if needed
+      // Example: navigation.navigate(SCREENS.HOME); // Or some other safe screen
+    }
   };
 
   const handleEmptyViewButtonPress = () => {
     if (activeFilterTab === 'participated') {
       navigation.navigate(SCREENS.HOME);
     } else {
-      navigation.navigate(SCREENS.FUNDING_UPLOAD);
+      // FUNDING_UPLOAD 스크린으로 네비게이션
+      // navigation.navigate(SCREENS.FUNDING_UPLOAD); // RootStackParamList에 FUNDING_UPLOAD가 있어야 함
+      // 임시로 RootStack 네비게이션은 주석 처리
+      try {
+        (navigation.getParent() as any)?.navigate(SCREENS.FUNDING_UPLOAD);
+      } catch (navError) {
+        console.error('Failed to navigate to FUNDING_UPLOAD:', navError);
+      }
     }
   };
 
-  const fundingsToDisplay =
-    activeFilterTab === 'participated' ? DUMMY_MY_FUNDINGS : DUMMY_CREATED_FUNDINGS;
+  // fundingsToDisplay 대신 fundingsData 사용
+  // const fundingsToDisplay =
+  //   activeFilterTab === 'participated' ? DUMMY_MY_FUNDINGS : DUMMY_CREATED_FUNDINGS;
 
-  // 필터 탭의 텍스트 스타일 결정
   const getFilterTextStyle = (tabType: MyPageFilterType) => {
     return activeFilterTab === tabType ? styles.activeFilterTabText : styles.filterTabText;
   };
-  // 필터 탭의 스타일 결정
   const getFilterTabStyle = (tabType: MyPageFilterType) => {
     return activeFilterTab === tabType ? styles.activeFilterTab : styles.filterTab;
   };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={[styles.safeArea, styles.centered]}>
+        <ActivityIndicator size="large" color={Colors.mainRed} />
+        <Text style={styles.loadingText}>목록을 불러오는 중...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={[styles.safeArea, styles.centered]}>
+        <HomeHeader />
+        <View style={styles.filterTabContainer}>{/* 필터 탭 UI는 에러 시에도 유지 */}</View>
+        <Text style={styles.errorTitleText}>오류 발생</Text>
+        <Text style={styles.errorText}>{error}</Text>
+        {/* 재시도 버튼 등 추가 가능 */}
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -108,9 +201,9 @@ const MyPage = () => {
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}>
-        {fundingsToDisplay.length > 0 ? (
+        {fundingsData.length > 0 ? (
           <View style={styles.listContainer}>
-            {fundingsToDisplay.map(item => (
+            {fundingsData.map(item => (
               <ParticipatedFundingListItem
                 key={item.id}
                 imageUrl={item.imageUrl}
@@ -118,6 +211,8 @@ const MyPage = () => {
                 daysLeft={item.daysLeft}
                 title={item.title}
                 onPress={() => handleListItemPress(item.id, activeFilterTab)}
+                // location prop은 MyFundingListItemType에 없으므로 전달하지 않음
+                // 또는 mapToMyFundingListItem에서 location을 추가하고 여기서 전달
               />
             ))}
           </View>
@@ -133,6 +228,28 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: Colors.grayLightWhite,
+  },
+  centered: {
+    // 로딩 및 에러 표시용
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: vs(10),
+    ...Typography.body2_m_14,
+    color: Colors.grayLight700,
+  },
+  errorTitleText: {
+    marginTop: vs(20),
+    ...Typography.subtitle1_b_20,
+    color: Colors.mainRed,
+    marginBottom: vs(8),
+  },
+  errorText: {
+    ...Typography.body2_m_14,
+    color: Colors.grayLight800,
+    textAlign: 'center',
+    paddingHorizontal: scale(20),
   },
   filterTabContainer: {
     flexDirection: 'row',
@@ -168,7 +285,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingBottom: vs(20),
-    flexGrow: 1,
+    flexGrow: 1, // 중요: 내용이 적을 때도 EmptyListView가 중앙에 오도록
   },
   listContainer: {
     paddingHorizontal: scale(16),

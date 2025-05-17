@@ -3,18 +3,28 @@ import {View, Text, TouchableOpacity, StyleSheet, Modal, FlatList} from 'react-n
 import {scale, vs} from '../../../utils/scaling';
 import Colors from '../../../styles/theme';
 import Typography from '../../../styles/typography';
+import {Region} from '../../../api/types';
+import {API_REGION_TO_USER_LABEL_MAP} from '../../../../label';
 
 interface RegionSelectorProps {
-  selectedRegion: string;
-  onRegionChange: (region: string) => void;
+  selectedRegion: Region;
+  onRegionChange: (region: Region) => void;
 }
 
-const regions = ['서울', '인천/경기', '경상도', '충청도', '강원도', '전라도', '제주도'];
+const regions = [
+  'SEOUL',
+  'INCHEON_GYEONGGI',
+  'GYEONGSANG',
+  'CHUNGCHEONG',
+  'GANGWON',
+  'JEOLLA',
+  'JEJU',
+];
 
 const RegionSelector: React.FC<RegionSelectorProps> = ({selectedRegion, onRegionChange}) => {
   const [modalVisible, setModalVisible] = useState(false);
 
-  const handleRegionSelect = (region: string) => {
+  const handleRegionSelect = (region: Region) => {
     onRegionChange(region);
     setModalVisible(false);
   };
@@ -22,7 +32,7 @@ const RegionSelector: React.FC<RegionSelectorProps> = ({selectedRegion, onRegion
   return (
     <>
       <TouchableOpacity style={styles.container} onPress={() => setModalVisible(true)}>
-        <Text style={styles.regionText}>{selectedRegion}</Text>
+        <Text style={styles.regionText}>{API_REGION_TO_USER_LABEL_MAP[selectedRegion]}</Text>
         <View style={styles.arrowDown} />
       </TouchableOpacity>
 
@@ -42,13 +52,13 @@ const RegionSelector: React.FC<RegionSelectorProps> = ({selectedRegion, onRegion
               renderItem={({item}) => (
                 <TouchableOpacity
                   style={[styles.regionItem, item === selectedRegion && styles.selectedRegionItem]}
-                  onPress={() => handleRegionSelect(item)}>
+                  onPress={() => handleRegionSelect(item as Region)}>
                   <Text
                     style={[
                       styles.regionItemText,
                       item === selectedRegion && styles.selectedRegionItemText,
                     ]}>
-                    {item}
+                    {API_REGION_TO_USER_LABEL_MAP[item as Region]}
                   </Text>
                 </TouchableOpacity>
               )}
