@@ -1,5 +1,8 @@
 import React, {useState} from 'react';
 import {View, StyleSheet, SafeAreaView, ScrollView} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {RootStackParamList, SCREENS} from '../../navigation/types';
 import HomeHeader from './ui/HomeHeader';
 import RegionSelector from './ui/RegionSelector';
 import FundingListHeader from './ui/FundingListHeader';
@@ -47,6 +50,7 @@ const HomePage = () => {
   const [selectedRegion, setSelectedRegion] = useState<string>('경상도');
   const [activeFilter, setActiveFilter] = useState<FilterOption>('achievement');
   const [fundingData, setFundingData] = useState(DUMMY_FUNDING_DATA);
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const handleAlertPress = () => {
     console.log('Alert pressed');
@@ -72,6 +76,7 @@ const HomePage = () => {
 
   const handleFundingItemPress = (id: string) => {
     console.log('펀딩 아이템 클릭:', id);
+    navigation.navigate(SCREENS.FUNDING_DETAIL, {fundingId: id});
   };
 
   return (
