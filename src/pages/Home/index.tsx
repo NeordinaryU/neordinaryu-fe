@@ -194,7 +194,9 @@ const HomePage = () => {
       <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
         <View style={styles.container}>
           <HomeHeader />
-          <RegionSelector selectedRegion={selectedRegion} onRegionChange={handleRegionChange} />
+          <View>
+            <RegionSelector selectedRegion={selectedRegion} onRegionChange={handleRegionChange} />
+          </View>
           <View style={styles.bannerContainer}>
             <Image source={imgBanner1} style={styles.bannerImage} />
           </View>
@@ -219,7 +221,7 @@ const HomePage = () => {
                   id={item.fundingId.toString()}
                   title={item.title}
                   userRegionLabel={
-                    API_REGION_TO_USER_LABEL_MAP[item.user.region] || item.user.region.toString()
+                    API_REGION_TO_USER_LABEL_MAP.SEOUL || item.user.region.toString()
                   }
                   detailAddress={item.detailAddress || ''}
                   daysLeft={calculateDaysLeft(item.deadlineDate)}
@@ -250,9 +252,8 @@ const styles = StyleSheet.create({
   },
   bannerContainer: {
     width: scale(375),
-    height: vs(200),
+    height: vs(160),
     alignSelf: 'center',
-    marginTop: vs(16),
     overflow: 'hidden',
   },
   bannerImage: {

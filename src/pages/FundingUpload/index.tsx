@@ -1,29 +1,40 @@
-import React, {useState, useRef} from 'react';
-import {View, StyleSheet, ScrollView, TouchableOpacity, Text, Image} from 'react-native';
+import React, {useState, useRef, useCallback} from 'react';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Text,
+  Alert,
+  ActivityIndicator,
+  Image,
+} from 'react-native';
 import HomeHeader from '../Home/ui/HomeHeader';
 import Colors from '../../styles/theme';
 import Typography from '../../styles/typography';
 import {scale, vs} from '../../utils/scaling';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import {launchImageLibrary, ImagePickerResponse, Asset} from 'react-native-image-picker';
+import {useNavigation, NavigationProp} from '@react-navigation/native';
+import {RootStackParamList, SCREENS} from '../../navigation/types';
+import {useToast} from '../../contexts/ToastContext';
+import {createFunding} from '../../api/fundingApi'; // API 함수 및 Region 타입 임포트
+import {Region as ApiRegion} from '../../api/types';
 
 // Import new UI components
 import SectionHeader from './ui/SectionHeader';
 import FundingTextInput from './ui/FundingTextInput';
-import ImageAttachmentInput from './ui/ImageAttachmentInput';
 import PickerPlaceholderButton from './ui/PickerPlaceholderButton';
 import FundingTextArea from './ui/FundingTextArea';
 import RegionDropdown from './ui/RegionDropdown';
 
 // Import SVG icons as React Components
-import IcAddImg from '../../assets/ic_add.svg';
 import IcCalendar from '../../assets/ic_calendar_22.svg';
 import IcArrowDownGary from '../../assets/ic_arrow_down_gary_22.svg';
 import IcCheckGray from '../../assets/ic_check_gray_22.svg';
 import IcCheckRed from '../../assets/ic_check_red_22.svg';
 
-// Region Enum and Labels
-export enum Region {
+// Region Enum and Labels (이름 변경: Region -> PageLocalRegion)
+export enum PageLocalRegion {
   SEOUL = 'SEOUL',
   INCHEON_GYEONGGI = 'INCHEON_GYEONGGI',
   GYEONGSANG = 'GYEONGSANG',
@@ -33,17 +44,17 @@ export enum Region {
   JEJU = 'JEJU',
 }
 
-export const REGION_LABELS: Record<Region, string> = {
-  [Region.SEOUL]: '서울',
-  [Region.INCHEON_GYEONGGI]: '인천/경기',
-  [Region.GYEONGSANG]: '경상도',
-  [Region.CHUNGCHEONG]: '충청도',
-  [Region.GANGWON]: '강원도',
-  [Region.JEOLLA]: '전라도',
-  [Region.JEJU]: '제주도',
+export const REGION_LABELS: Record<PageLocalRegion, string> = {
+  [PageLocalRegion.SEOUL]: '서울',
+  [PageLocalRegion.INCHEON_GYEONGGI]: '인천/경기',
+  [PageLocalRegion.GYEONGSANG]: '경상도',
+  [PageLocalRegion.CHUNGCHEONG]: '충청도',
+  [PageLocalRegion.GANGWON]: '강원도',
+  [PageLocalRegion.JEOLLA]: '전라도',
+  [PageLocalRegion.JEJU]: '제주도',
 };
 
-const regionOptions = Object.values(Region).map(value => ({
+const regionOptions = Object.values(PageLocalRegion).map(value => ({
   label: REGION_LABELS[value],
   value: value,
 }));
@@ -55,52 +66,132 @@ const formatDate = (date: Date | null) => {
 };
 
 const FundingUploadPage = () => {
-  const [fundingTitle, setFundingTitle] = useState('');
-  const [detailedAddress, setDetailedAddress] = useState('');
-  const [targetAmount, setTargetAmount] = useState('');
-  const [message, setMessage] = useState('');
-  const [thumbnailUri, setThumbnailUri] = useState<string | null>(null);
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const {showToast} = useToast();
 
-  // Date Picker States
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const [datePickerMode, setDatePickerMode] = useState<'deadline' | 'completionDate' | null>(null);
-  const [deadline, setDeadline] = useState<Date | null>(null);
-  const [completionDate, setCompletionDate] = useState<Date | null>(null);
+  // 초기 상태 값들을 명시적으로 정의 (선택 사항, 하지만 초기화 함수에 유용)
+  const initialFundingTitle = '';
+  const initialDetailedAddress = '';
+  const initialTargetAmount = '';
+  const initialMessage = '';
+  const initialDeadline = null;
+  const initialCompletionDate = null;
+  const initialSelectedRegion = null;
+  const initialPrivacyAgreed = false;
 
-  // Region Picker States
-  const [isRegionDropdownVisible, setRegionDropdownVisibility] = useState(false);
-  const [selectedRegion, setSelectedRegion] = useState<Region | null>(null);
+  const [fundingTitle, setFundingTitle] = useState(initialFundingTitle);
+  const [detailedAddress, setDetailedAddress] = useState(initialDetailedAddress);
+  const [targetAmount, setTargetAmount] = useState(initialTargetAmount);
+  const [message, setMessage] = useState(initialMessage);
+  const [deadline, setDeadline] = useState<Date | null>(initialDeadline);
+  const [completionDate, setCompletionDate] = useState<Date | null>(initialCompletionDate);
+  const [selectedRegion, setSelectedRegion] = useState<PageLocalRegion | null>(
+    initialSelectedRegion,
+  );
+  const [privacyAgreed, setPrivacyAgreed] = useState(initialPrivacyAgreed);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const [privacyAgreed, setPrivacyAgreed] = useState(false);
+  const resetFormFields = useCallback(() => {
+    setFundingTitle(initialFundingTitle);
+    setDetailedAddress(initialDetailedAddress);
+    setTargetAmount(initialTargetAmount);
+    setMessage(initialMessage);
+    setDeadline(initialDeadline);
+    setCompletionDate(initialCompletionDate);
+    setSelectedRegion(initialSelectedRegion);
+    setPrivacyAgreed(initialPrivacyAgreed);
+  }, [
+    initialFundingTitle,
+    initialDetailedAddress,
+    initialTargetAmount,
+    initialMessage,
+    initialDeadline,
+    initialCompletionDate,
+    initialSelectedRegion,
+    initialPrivacyAgreed,
+  ]);
+
+  const validateForm = useCallback(() => {
+    if (!fundingTitle.trim()) {
+      Alert.alert('입력 오류', '펀딩 제목을 입력해주세요.');
+      return false;
+    }
+    if (fundingTitle.trim().length > 10) {
+      Alert.alert('입력 오류', '펀딩 제목은 10자 이내로 입력해주세요.');
+      return false;
+    }
+    if (!selectedRegion) {
+      Alert.alert('입력 오류', '설치 지역을 선택해주세요.');
+      return false;
+    }
+    if (!detailedAddress.trim()) {
+      Alert.alert('입력 오류', '상세 주소를 입력해주세요.');
+      return false;
+    }
+    if (detailedAddress.trim().length > 30) {
+      Alert.alert('입력 오류', '상세 주소는 30자 이내로 입력해주세요.');
+      return false;
+    }
+    if (!deadline) {
+      Alert.alert('입력 오류', '펀딩 마감 기한을 선택해주세요.');
+      return false;
+    }
+    if (!completionDate) {
+      Alert.alert('입력 오류', '완공 예정일을 선택해주세요.');
+      return false;
+    }
+    if (!targetAmount.trim() || Number(targetAmount) <= 0) {
+      Alert.alert('입력 오류', '목표 금액을 올바르게 입력해주세요.');
+      return false;
+    }
+    if (Number(targetAmount) > 9999999999) {
+      // 예시: 100억 초과 방지
+      Alert.alert('입력 오류', '목표 금액이 너무 큽니다.');
+      return false;
+    }
+    if (!message.trim()) {
+      Alert.alert('입력 오류', '하고 싶은 말을 입력해주세요.');
+      return false;
+    }
+    if (message.trim().length > 500) {
+      Alert.alert('입력 오류', '하고 싶은 말은 500자 이내로 입력해주세요.');
+      return false;
+    }
+    if (!privacyAgreed) {
+      Alert.alert('동의 필요', '개인정보 수집에 동의해주세요.');
+      return false;
+    }
+    if (completionDate && deadline && completionDate <= deadline) {
+      Alert.alert('날짜 오류', '완공 예정일은 펀딩 마감 기한 이후여야 합니다.');
+      return false;
+    }
+    return true;
+  }, [
+    fundingTitle,
+    selectedRegion,
+    detailedAddress,
+    deadline,
+    completionDate,
+    targetAmount,
+    message,
+    privacyAgreed,
+  ]);
 
   const isFormValid =
-    fundingTitle &&
-    detailedAddress &&
-    targetAmount &&
-    message &&
+    fundingTitle.trim() &&
+    fundingTitle.trim().length <= 10 &&
+    detailedAddress.trim() &&
+    detailedAddress.trim().length <= 30 &&
+    targetAmount.trim() &&
+    Number(targetAmount) > 0 &&
+    Number(targetAmount) <= 9999999999 &&
+    message.trim() &&
+    message.trim().length <= 500 &&
     deadline &&
     completionDate &&
-    thumbnailUri &&
+    completionDate > deadline &&
     selectedRegion &&
     privacyAgreed;
-
-  const handleChooseThumbnail = async () => {
-    const result: ImagePickerResponse = await launchImageLibrary({
-      mediaType: 'photo',
-      quality: 0.5,
-    });
-
-    if (result.didCancel) {
-      console.log('사용자가 이미지 선택을 취소했습니다.');
-    } else if (result.errorCode) {
-      console.log('ImagePicker 오류: ', result.errorMessage);
-    } else if (result.assets && result.assets.length > 0) {
-      const selectedImage: Asset = result.assets[0];
-      if (selectedImage.uri) {
-        setThumbnailUri(selectedImage.uri);
-      }
-    }
-  };
 
   // Region Picker Handlers
   const toggleRegionDropdown = () => {
@@ -108,12 +199,15 @@ const FundingUploadPage = () => {
     setRegionDropdownVisibility(!isRegionDropdownVisible);
   };
 
-  const handleRegionPicked = (region: Region) => {
+  const handleRegionPicked = (region: PageLocalRegion) => {
     setSelectedRegion(region);
     setRegionDropdownVisibility(false);
   };
 
   // Date Picker Handlers
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [datePickerMode, setDatePickerMode] = useState<'deadline' | 'completionDate' | null>(null);
+
   const showDatePicker = (mode: 'deadline' | 'completionDate') => {
     setDatePickerMode(mode);
     setDatePickerVisibility(true);
@@ -133,19 +227,54 @@ const FundingUploadPage = () => {
     hideDatePicker();
   };
 
-  const handleUpload = () => {
-    console.log('펀딩 상세 정보 업로드:', {
-      fundingTitle,
-      detailedAddress,
-      targetAmount,
-      message,
-      deadline: deadline ? deadline.toISOString() : null,
-      completionDate: completionDate ? completionDate.toISOString() : null,
-      thumbnailUri,
-      selectedRegion,
-      privacyAgreed,
-    });
+  const handleUpload = async () => {
+    if (!validateForm() || isUploading) {
+      return;
+    }
+    if (!selectedRegion || !deadline || !completionDate) {
+      // 확실하게 null 체크
+      Alert.alert('오류', '필수 정보가 누락되었습니다. 날짜와 지역을 확인해주세요.');
+      setIsUploading(false); // 업로드 중단 시 상태 복원
+      return;
+    }
+
+    setIsUploading(true);
+
+    const fundingData = {
+      title: fundingTitle.trim(),
+      description: message.trim(),
+      goalMoney: Number(targetAmount),
+      deadlineDate: deadline.toISOString(),
+      completeDueDate: completionDate.toISOString(),
+      region: selectedRegion as ApiRegion,
+      detailAddress: detailedAddress.trim(),
+      photoUrl: 'https://i.pinimg.com/736x/16/00/18/160018ba1bdc0c187df283f6b080814c.jpg',
+      privacyAgreement: privacyAgreed,
+    };
+
+    try {
+      const response = await createFunding(fundingData);
+      if (response.statusCode === 201 && response.data) {
+        showToast('펀딩이 성공적으로 업로드되었습니다!', 'success');
+        resetFormFields(); // 필드 초기화
+        navigation.reset({
+          index: 0,
+          routes: [{name: SCREENS.MAIN}],
+        });
+      } else {
+        showToast(response.message || '펀딩 업로드에 실패했습니다.', 'error');
+      }
+    } catch (e: any) {
+      console.error('Upload error:', e);
+      const errorMessage =
+        e.response?.data?.message || e.message || '펀딩 업로드 중 오류가 발생했습니다.';
+      showToast(errorMessage, 'error');
+    } finally {
+      setIsUploading(false);
+    }
   };
+
+  const [isRegionDropdownVisible, setRegionDropdownVisibility] = useState(false);
 
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -168,21 +297,21 @@ const FundingUploadPage = () => {
           value={fundingTitle}
           onChangeText={setFundingTitle}
           placeholder="어떤 태양광 설치를 준비하고 있나요?"
+          maxLength={10}
           onFocus={() => {
             if (isRegionDropdownVisible) setRegionDropdownVisibility(false);
           }}
         />
 
-        <ImageAttachmentInput title="썸네일 등록하기" onPress={handleChooseThumbnail}>
-          {thumbnailUri ? (
-            <Image source={{uri: thumbnailUri}} style={styles.thumbnailImage} />
-          ) : (
-            <View style={styles.thumbnailContent}>
-              <IcAddImg width={scale(48)} height={vs(48)} />
-              <Text style={styles.thumbnailText}>아이콘을 눌러 사진을 첨부해주세요</Text>
-            </View>
-          )}
-        </ImageAttachmentInput>
+        <View style={styles.thumbnailSectionContainer}>
+          <SectionHeader title="썸네일" />
+          <Image
+            source={{
+              uri: 'https://i.pinimg.com/736x/16/00/18/160018ba1bdc0c187df283f6b080814c.jpg',
+            }}
+            style={styles.thumbnailImageFixed}
+          />
+        </View>
 
         <SectionHeader title="설치 지역" />
         <View style={[styles.regionPickerContainer, {width: scale(193)}]}>
@@ -208,6 +337,7 @@ const FundingUploadPage = () => {
           value={detailedAddress}
           onChangeText={setDetailedAddress}
           placeholder="상세 주소를 입력해주세요."
+          maxLength={30}
           style={styles.groupedInput}
           onFocus={() => {
             if (isRegionDropdownVisible) setRegionDropdownVisibility(false);
@@ -240,7 +370,7 @@ const FundingUploadPage = () => {
           title="목표 금액"
           value={targetAmount}
           onChangeText={setTargetAmount}
-          placeholder="금액 입력"
+          placeholder="금액 입력 (최대 100억)"
           keyboardType="numeric"
           suffixUnit="원"
           style={{width: scale(193)}}
@@ -253,8 +383,9 @@ const FundingUploadPage = () => {
           title="하고싶은말"
           value={message}
           onChangeText={setMessage}
-          placeholder="예산, 작업계획 등 펀딩 신청자에게 하고싶은 말을 적어주세요. (최대 300자)"
+          placeholder="예산, 작업계획 등 펀딩 신청자에게 하고싶은 말을 적어주세요. (최대 500자)"
           style={{height: vs(288)}}
+          maxLength={500}
           onFocus={() => {
             if (isRegionDropdownVisible) setRegionDropdownVisibility(false);
           }}
@@ -278,14 +409,18 @@ const FundingUploadPage = () => {
             isFormValid ? styles.uploadButtonActive : styles.uploadButtonInactive,
           ]}
           onPress={handleUpload}
-          disabled={!isFormValid}>
-          <Text
-            style={[
-              styles.uploadButtonTextBase,
-              isFormValid ? styles.uploadButtonTextActive : styles.uploadButtonTextInactive,
-            ]}>
-            업로드
-          </Text>
+          disabled={!isFormValid || isUploading}>
+          {isUploading ? (
+            <ActivityIndicator color={Colors.grayLightWhite} />
+          ) : (
+            <Text
+              style={[
+                styles.uploadButtonTextBase,
+                isFormValid ? styles.uploadButtonTextActive : styles.uploadButtonTextInactive,
+              ]}>
+              업로드
+            </Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
       <DateTimePickerModal
@@ -310,24 +445,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(20),
     paddingBottom: vs(40),
   },
+  thumbnailSectionContainer: {
+    marginBottom: vs(24),
+  },
+  thumbnailImageFixed: {
+    width: '100%',
+    height: vs(200),
+    borderRadius: scale(8),
+    backgroundColor: Colors.grayLight200,
+    marginTop: vs(12),
+  },
   regionPickerButtonWrapper: {
     marginBottom: 0,
   },
   groupedInput: {},
-  thumbnailContent: {
-    alignItems: 'center',
-  },
-  thumbnailText: {
-    ...Typography.body3_b_12,
-    color: Colors.grayLight600,
-    marginTop: vs(8),
-  },
-  thumbnailImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: scale(8),
-    resizeMode: 'cover',
-  },
   regionPickerContainer: {
     position: 'relative',
     marginBottom: vs(8),
