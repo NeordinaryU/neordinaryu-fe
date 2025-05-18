@@ -160,7 +160,7 @@ const FundingDetailPage: React.FC<FundingDetailProps> = ({route, navigation}) =>
         });
         console.log('펀딩 연장 성공, 응답 데이터:', response.data);
       } else {
-        showToast('펀딩 기간 연장에 실패했습니다.', 'error');
+        showToast(response.message || '펀딩 기간 연장에 실패했습니다.', 'error');
         console.error('펀딩 연장 API 실패:', response.message);
       }
     } catch (e: any) {
