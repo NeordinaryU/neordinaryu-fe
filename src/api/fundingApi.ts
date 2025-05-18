@@ -104,6 +104,7 @@ export interface FundingDetailResponseData {
   createdAt: string;
   updatedAt: string;
   isOwner: boolean;
+  isProlongation: boolean;
 }
 
 export const getFundingDetail = async (
@@ -142,7 +143,7 @@ export interface CreateFundingResponseData {
 export const createFunding = async (
   data: CreateFundingRequest,
 ): Promise<BaseApiResponse<CreateFundingResponseData>> => {
-  console.log('펀딩 글 작성 요청 (axiosInstance 사용): ', data);
+  console.log('펀딩 글 작성 요청 (axiosInstance 사용):', data);
   const response = await axiosInstance.post<BaseApiResponse<CreateFundingResponseData>>(
     '/funding',
     data,
