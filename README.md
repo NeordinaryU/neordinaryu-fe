@@ -1,97 +1,101 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# 🌞 Sunning 써닝 
 
-# Getting Started
+> 태양을 따라 계속 가치를 만들어가는 재생 에너지 펀딩 플랫폼
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+<img src="https://github.com/user-attachments/assets/bb29b1dd-1ed8-4207-8ce2-165b31229f5d" width="1140px" alt="overview" />
 
-## Step 1: Start Metro
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## 🌅 개요
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+**태양**이라는 재생에너지를 통해 지속적으로 가치를 만들어가는 플랫폼
 
-```sh
-# Using npm
-npm start
+**써닝(Sunning)은 보이지 않는 환경 가치를 후원하고, 후원받는 새로운 형태의 펀딩 플랫폼입니다.**
 
-# OR using Yarn
-yarn start
-```
 
-## Step 2: Build and run your app
+## 🧠 문제 인식
+- 한국은 OECD 국가 중 재생에너지 발전 비중 **꼴찌** 수준입니다.
+- 기후위기의 심각성에 공감하는 국민은 많지만, **"어떻게 참여해야 할지"** 모르기 때문에 실질적 행동으로 이어지지 않고 있습니다.
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
 
-### Android
 
-```sh
-# Using npm
-npm run android
+## 🌱 해결 방안
 
-# OR using Yarn
-yarn android
-```
+✅ 민간 참여가 쉬운 **태양광 중심** 플랫폼
 
-### iOS
+민간이 가장 쉽게 참여할 수 있는 재생에너지는 "태양광"입니다.
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+→ 수력·폐기물 등은 인허가·시설 진입장벽이 높아 B2C 확장이 어렵습니다.
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+→ 태양광은 유휴공간 활용, 소형 모듈, 설치 용이로 참여장벽이 낮습니다.
 
-```sh
-bundle install
-```
 
-Then, and every time you update your native dependencies, run:
 
-```sh
-bundle exec pod install
-```
+## 🔧 핵심 기능
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+**📖 매거진**
+- 뉴스, 유튜브, 카드형 콘텐츠 큐레이션  
+- 재생에너지에 대한 이해 및 인식 개선
 
-```sh
-# Using npm
-npm run ios
+**💸 커뮤니티 기반 펀딩**
+- 마을/아파트 단위 공동 태양광 설치  
+- 목표금액 달성 시 실제 설치 → 공동체가 사용
 
-# OR using Yarn
-yarn ios
-```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+## 👥 타겟 유저
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+- 🎯 **타겟 1**  
+  재생에너지에 대해 아직 잘 모르는 사용자
 
-## Step 3: Modify your app
+- 🎯 **타겟 2**  
+  관심은 있지만 참여 방법을 모르는 사용자
 
-Now that you have successfully run the app, let's make changes!
+- 🎯 **타겟 3**  
+  재생에너지에 관심이 많고 적극적 참여 준비가 된 사용자
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+## 💡 SWOT 분석
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+**✅ Strength**
+- 초기 비용 없이 간편하게 참여 가능  
+- 환경 가치 + 경제 보상 동시 제공  
+- 커뮤니티 기반으로 입소문 효과 기대
 
-## Congratulations! :tada:
+**⚠️ Weakness**
+- 낮은 초기 인식으로 참여 진입 유도 어려움  
+- 설치까지 신뢰 확보와 시간 소요
 
-You've successfully run and modified your React Native App. :partying_face:
+**🌟 Opportunity**
+- 정부·지자체 정책과의 연계 가능  
+- ESG 경영 확산과 함께 관심도 증가
 
-### Now what?
+**🚨 Threat**
+- 정책/법률 변화에 따른 불확실성  
+- 기술 발전에 따른 수익성 변화 리스크
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
 
-# Troubleshooting
+## 🔭 앞으로의 확장 계획 (Future Plans)
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+- 소셜 로그인 도입
+- 기업·지자체 연계 리워드 확대
+- 설치 진행 상황 트래킹 기능
+- 개인용 미니 태양광판 판매 기능
+- 지역 커뮤니티 별 랭킹/기여도 시각화
+- 소셜 로그인 기반 리워드 참여 구조  
+- 기업/지자체와 연계한 인센티브 제공
 
-# Learn More
 
-To learn more about React Native, take a look at the following resources:
+## 🖌️ 디자인 방향 (Design Direction)
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+**🎨 로고**
+- 태양이 떠오르는 생명력 있는 비주얼
+
+**🖥️ UI/UX**
+- 카드형 펀딩 리스트  
+- 배경 이미지가 스크롤과 함께 자연스럽게 이동하는 인터랙션
+
+**🌿 컬러톤**
+- 자연, 생동감, 지속가능성을 상징하는 색감 사용
+
+
+
+
